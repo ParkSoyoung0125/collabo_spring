@@ -2,6 +2,7 @@ package com.coffee.controller;
 
 import com.coffee.entity.Member;
 import com.coffee.service.MemberService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public class MemberController {
     private final MemberService memberService;
 
     @PostMapping("/member/signup")
-    public ResponseEntity<?> signup(@RequestBody Member bean){ // 회원 가입을 위한 컨트롤러 메소드
+    public ResponseEntity<?> signup(@Valid @RequestBody Member bean){ // 회원 가입을 위한 컨트롤러 메소드
         // ResponseEntity : Http 응답 코드(숫자 형식)나, 적절한 메시지 등을 표현하기 위한 클래스
         // JSON : JavaScript Object Notation
         // RequestBody : JSON 형태의 문자열을 자바의 객체 타입으로 변환해줌.
