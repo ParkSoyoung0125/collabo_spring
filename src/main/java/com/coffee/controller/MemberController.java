@@ -89,10 +89,10 @@ public class MemberController {
         }
 
     }
-    @PostMapping("/logout")
-    public ResponseEntity<String> logout(){
-        // 추후 추가 코딩 정보가 있으면 추가할 수 있음.
-        return ResponseEntity.ok("logout success");
-    }
+//    @PostMapping("/logout")
+//    public ResponseEntity<String> logout(){
+//        // 추후 추가 코딩 정보가 있으면 추가할 수 있음.
+//        return ResponseEntity.ok("logout success");
+//    }
     
 }
