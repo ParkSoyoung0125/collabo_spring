@@ -173,4 +173,15 @@ public class ProductController {
             return base64Image;
         }
     }
+
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<Product> productDetail(@PathVariable Long id){
+        Product product = productService.getProductById(id);
+        if (product == null){
+//                 return ResponseEntity.notFound().build();
+                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            } else {
+                return ResponseEntity.ok().body(product);
+            }
+    }
 }
