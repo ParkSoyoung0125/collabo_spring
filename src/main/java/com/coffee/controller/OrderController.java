@@ -1,7 +1,9 @@
 package com.coffee.controller;
 
+import com.coffee.constant.Role;
 import com.coffee.dto.OrderDto;
 import com.coffee.dto.OrderItemDto;
+import com.coffee.dto.OrderResponseDto;
 import com.coffee.entity.Member;
 import com.coffee.entity.Order;
 import com.coffee.entity.OrderProduct;
@@ -58,9 +60,7 @@ public class OrderController {
                 throw new RuntimeException("해당 상품이 존재하지않습니다.");
             }
             Product product = optionalProduct.get();
-
-
-
+            
             if(product.getStock() < item.getQuantity()){
                 throw new RuntimeException("재고 수량이 부족합니다.");
             }
@@ -97,10 +97,62 @@ public class OrderController {
         return ResponseEntity.ok(message);
     }
 
-    @PostMapping("/orderList/{memberId}")
-    public ResponseEntity<List> orderList(@PathVariable Long memberId){
-    Optional<List> orderSelectedAll = this.orderService.findById(memberId);
+    // 특정한 회원의 주문 정보를 최신 날짜 순으로 조회함
+    // http://localhost:9000/order/list?memberId=회원아이디
+    @GetMapping("/list") // React의 OrderList.js 파일 내의 useEffect 참조
+    public ResponseEntity<List<OrderResponseDto>> getOrderList(@RequestParam Long memberId, @RequestParam Role role){
+        System.out.println("로그인 한 사람의 id : " + memberId);
+        System.out.println("로그인 한 사람의 역할 : " + role);
 
-        return  null;
+        List<Order> orders = null;
+
+        if (role == Role.ADMIN){ // 관리자면 모든 주문 내역 조회하기 
+//            System.out.println("관리자");
+            orders = orderService.findAllOrders();
+        } else { // 일반 유저인 경우 본인 주문만 조회하기
+//            System.out.println("일반 유저");
+            orders = orderService.findByMemberId(memberId); // memberId로 Id계정주의 주문 정보 가져오기
+        }
+
+
+        System.out.println("주문 건수 : " + orders.size());
+
+        List<OrderResponseDto> responseDtos = new ArrayList<>(); // 전송할 데이터(빈 곽)
+
+        for (Order bean : orders){
+            OrderResponseDto dto = new OrderResponseDto();
+
+            // 주문의 기초 정보 세팅
+            dto.setOrderId(bean.getId());
+            dto.setOrderDate(bean.getOrderDate());
+            dto.setStatus(bean.getStatus().name());
+
+            // 주문 기초 정보 내에 여러 개의 상품 정보 세팅
+            List<OrderResponseDto.OrderItem> orderItems = new ArrayList<>();
+
+            for (OrderProduct op : bean.getOrderProducts()){
+                OrderResponseDto.OrderItem item
+                        = new OrderResponseDto.OrderItem(op.getProduct().getName(), op.getQuantity());
+
+                orderItems.add(item);
+            }
+            // OrderProduct : 하나의 주문을 뜻하는 엔터티
+            // orders : memberId로 받아온 주문내역 리스트
+            //  bean : 주문 내역 리스트(orders)를 배열한 1 건의 주문
+            // bean.getOrderProducts() : 1건의 주문 내역 안에 있는 여러개의 상품 정보(ex:한번에 상품 3개 결제했을 시)
+            // OrderResponseDto.OrderItem : OrderResponseDto 안의 중첩클래스 OrderItem(productName, quantity)
+
+            dto.setOrderItems(orderItems);
+            responseDtos.add(dto);
+        }
+
+        return  ResponseEntity.ok(responseDtos);
+    }
+
+    @GetMapping("/update/{orderId}")
+    public String ddd(@PathVariable Long orderId){
+        System.out.println("수정할 항목 : " + orderId);
+        return null ;
     }
 }
+
