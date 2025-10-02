@@ -32,6 +32,7 @@ public class Order { // 주문과 관련된 Entity
 
     private LocalDate orderDate; // 주문 날짜
 
+    @Enumerated(EnumType.STRING)
     private OrderStatus status; // 주문 상태
 
 

@@ -184,4 +184,9 @@ public class ProductController {
                 return ResponseEntity.ok().body(product);
             }
     }
+
+    @GetMapping("") // 홈페이지에 보여줄 큰 이미지들에 대한 정보를 읽어옴.
+    public List<Product> getBigsizeProducts(@RequestParam(required = false) String filter){
+        return productService.getProductsByFilter(filter);
+    }
 }

@@ -1,5 +1,6 @@
 package com.coffee.controller;
 
+import com.coffee.constant.OrderStatus;
 import com.coffee.constant.Role;
 import com.coffee.dto.OrderDto;
 import com.coffee.dto.OrderItemDto;
@@ -13,6 +14,7 @@ import com.coffee.service.MemberService;
 import com.coffee.service.OrderService;
 import com.coffee.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/order")
@@ -153,6 +156,54 @@ public class OrderController {
     public String ddd(@PathVariable Long orderId){
         System.out.println("수정할 항목 : " + orderId);
         return null ;
+    }
+
+    // /update/status/${bean.orderId}?status=${newStatus}
+    @PutMapping("/update/status/{orderId}")
+    public ResponseEntity<String>  statusChange(@PathVariable Long orderId, @RequestParam OrderStatus status){
+        System.out.println("수정할 항목의 아이디 : " + orderId);
+        System.out.println("변경하고자 하는 주문 상태 : " + status);
+
+        int affected = -1; // DB에 반영이 된 행 갯수
+        affected = orderService.updateOrderStatus(orderId,status);
+        System.out.println("DB에 반영이 된 행 갯수 : " + affected);
+
+        String message = "송장 번호 " + orderId + "의 주문 상태가 변경되었습니다.";
+        return ResponseEntity.ok(message);
+    }
+
+    // '관리자' 또는 '주문 당사자'가 주문에 대한 삭제 요청
+    @DeleteMapping("/delete/{orderId}")
+    public ResponseEntity<String> cancelOrder(@PathVariable Long orderId){
+        if (!orderService.exitsById(orderId)){
+            return ResponseEntity.notFound().build();
+        }
+
+
+
+        // 아래부터는 재고 수량 증가를 위한 코드
+        Optional<Order> orderOptional = orderService.findByOrderId(orderId);
+        if(orderOptional.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+        Order order = orderOptional.get();
+
+        // 주문 상품을 반복하면서 재고 수량을 더해줌
+        for (OrderProduct op : order.getOrderProducts()){
+            Product product = op.getProduct();
+            int quantity = op.getQuantity();
+
+            // 기존 재고에 주문 취소된 수량을 다시 더해줌.
+            product.setStock(product.getStock() + quantity);
+            log.error("실행");
+
+            productService.save(product); // 데이터베이스에 수정.
+        }
+
+        orderService.deleteById(orderId);
+
+        String message  = "주문이 취소되었습니다.";
+        return ResponseEntity.ok(message);
     }
 }
 
