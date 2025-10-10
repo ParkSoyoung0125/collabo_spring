@@ -3,6 +3,8 @@ package com.coffee.service;
 import com.coffee.entity.Product;
 import com.coffee.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -57,5 +59,9 @@ public class ProductService {
             return productRepository.findByImageContaining(filter);
         }
         return productRepository.findAll();
+    }
+
+    public Page<Product> listProduct(Pageable pageable) {
+        return this.productRepository.findAll(pageable);
     }
 }

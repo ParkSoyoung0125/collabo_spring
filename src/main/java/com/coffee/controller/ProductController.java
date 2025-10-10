@@ -5,6 +5,10 @@ import com.coffee.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,11 +31,30 @@ public class ProductController {
 
     private final ProductService productService;
 
-    @GetMapping("/list") // 상품 목록을 List 컬렉션으로 반환.
-    public List<Product> list(){
-        List<Product> products = null;
-        products = productService.getProductList();
-        return products;
+//    @GetMapping("/list") // 상품 목록을 List 컬렉션으로 반환.
+//    public List<Product> list(){
+//        List<Product> products = null;
+//        products = productService.getProductList();
+//        return products;
+//    }
+
+    @GetMapping("/list") // 페이징 관련 파라미터를 사용하여 상품목록 조회
+    public ResponseEntity<Page<Product>> listProducts(
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "6") int pageSize
+    ){
+        System.out.println("pageNumber: " + pageNumber + ", pageSize : " + pageSize);
+
+        // 현재 페이지는 pageNumber이고, 페이지당 보여줄 pageSize를 사용하여 Pageable 페이지를 구함.
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC,"id"));
+
+        // 아래처럼도 가능
+//        Sort mysort =  Sort.by(Sort.Direction.DESC,"id");
+//        Pageable pageable = PageRequest.of(pageNumber, pageSize, mysort);
+
+        Page<Product> productPage = productService.listProduct(pageable);
+
+        return ResponseEntity.ok(productPage);
     }
 
     // 클라이언트가 특정 상품 id에 대하여 "삭제" 요청을 함.
@@ -189,4 +212,7 @@ public class ProductController {
     public List<Product> getBigsizeProducts(@RequestParam(required = false) String filter){
         return productService.getProductsByFilter(filter);
     }
+    
+    
+    
 }
