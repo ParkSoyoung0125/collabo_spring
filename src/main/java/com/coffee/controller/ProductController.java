@@ -7,6 +7,7 @@ import com.coffee.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,7 +61,7 @@ public class ProductController {
     }
 
     // 클라이언트가 특정 상품 id에 대하여 "삭제" 요청을 함.
-    // @PathVariable
+    // @PathVariable는 URL의 경로 변수를 메소드의 매개변수 값을 전달함.
     @DeleteMapping("/delete/{id}") // {id}는 경로변수라고 하며, 가변 매개변수임.
     public ResponseEntity<String> delete(@PathVariable Long id) { // {id}로 넘겨온 상품 id가 변수 id에 할당됨
         try{
@@ -71,6 +72,10 @@ public class ProductController {
             } else {
                 return ResponseEntity.badRequest().body(id + "번 상품이 존재하지 않습니다.");
             }
+
+        }catch (DataIntegrityViolationException err){
+            String msg = "해당 상품은 장바구니에 포함되어 있거나, 이미 매출이 발생한 상품입니다.\n확인해주세요.";
+            return ResponseEntity.badRequest().body(msg);
         } catch (Exception err) {
             return ResponseEntity.internalServerError().body("오류 발생 : " + err.getMessage());
         }
